@@ -1,4 +1,12 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+.location-map-pin {
+  background: #1e3a8a;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgb(15 23 42 / 35%);
+}
 
 @theme inline {
   --color-background: #f1f5f9;
@@ -24,27 +32,64 @@ body {
 }
 
 
-.slim-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.slim-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
+/* Consistent compact scrollbars across pages, panels, and dialogs. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #fff transparent;
 }
 
-.MuiDialog-paper {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+@supports selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
 }
-.MuiDialog-paper::-webkit-scrollbar {
-  width: 6px;
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
 }
-.MuiDialog-paper::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
+
+*::-webkit-scrollbar-thumb {
+  background: #fff;
+  border-radius: 4px;
 }
-.MuiDialog-paper::-webkit-scrollbar-track {
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* Panel overflow stays visible against the dashboard's white surfaces. */
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #eef1f4 transparent;
+  scrollbar-gutter: stable;
+}
+
+@supports selector(::-webkit-scrollbar) {
+  .panel-scroll {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+}
+
+.panel-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb {
+  background: #eef1f4;
+  min-height: 32px;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+.panel-scroll::-webkit-scrollbar-thumb:active {
+  background: #475569;
 }
 
 @keyframes fade-up {
