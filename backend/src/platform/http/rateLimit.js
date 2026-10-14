@@ -56,7 +56,11 @@ const webhookLimiter = buildLimiter({
   name: 'webhook', windowMs: MINUTE, limit: config.rateLimitWebhookPerMin, keyGenerator: (req) => `ip:${byIp(req)}`,
 });
 
+const activationLimiter = buildLimiter({
+  name: 'activation', windowMs: MINUTE, limit: 30, keyGenerator: (req) => `ip:${byIp(req)}`,
+});
+
 /** POST /api/auth/login: both the address and the email are limited. */
 const loginLimiter = [loginIpLimiter, loginEmailLimiter];
 
-module.exports = { buildLimiter, apiLimiter, loginLimiter, aiLimiter, writeLimiter, webhookLimiter };
+module.exports = { buildLimiter, apiLimiter, loginLimiter, aiLimiter, writeLimiter, webhookLimiter, activationLimiter };

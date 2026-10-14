@@ -11,7 +11,7 @@ module.exports = {
     require('./actions/create'), require('./actions/draft').draftAction, require('./actions/generateFlow').generateFlowAction, require('./actions/revise'), require('./actions/publish'),
     require('./actions/toggle').enable, require('./actions/toggle').disable, require('./actions/archive'), require('./actions/delete'),
   ],
-  queries: [require('./queries/list'), require('./queries/catalog'), require('./queries/test'), require('./queries/requirements').requirements],
+  queries: [require('./queries/list'), require('./queries/listAll'), require('./queries/catalog'), require('./queries/test'), require('./queries/requirements').requirements],
   checks: require('./checks/unavailable'),
   events: require('./events'),
   routes: [

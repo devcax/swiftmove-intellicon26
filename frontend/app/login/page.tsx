@@ -3,7 +3,6 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
@@ -26,14 +25,12 @@ export default function LoginPage() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [fieldErrors, setFieldErrors] = React.useState<FieldErrors>({});
-  const [error, setError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState(false);
   const [showPassword, setShowPassword] = React.useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (pending) return;
-    setError(null);
 
     const parsed = loginSchema.safeParse({ email, password });
     if (!parsed.success) {
@@ -56,7 +53,7 @@ export default function LoginPage() {
       router.refresh();
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Could not sign in. Please try again.";
-      setError(message); feedback.error(message);
+      feedback.error(message);
       setPassword("");
       setPending(false);
     }
@@ -124,12 +121,6 @@ export default function LoginPage() {
             slotProps={{ htmlInput: { autoComplete: "current-password" }, input: { endAdornment: <InputAdornment position="end"><IconButton aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} disabled={pending} onClick={() => setShowPassword((value) => !value)} onMouseDown={(event) => event.preventDefault()} edge="end">{showPassword ? <VisibilityOffOutlinedIcon fontSize="small" /> : <VisibilityOutlinedIcon fontSize="small" />}</IconButton></InputAdornment> } }}
           />
           </Box>
-
-          {error && (
-            <Alert severity="error" sx={{ borderRadius: 2 }} role="alert">
-              {error}
-            </Alert>
-          )}
 
           <Button
             type="submit"

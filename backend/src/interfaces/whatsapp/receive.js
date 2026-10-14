@@ -7,6 +7,7 @@ const runner = require("../../platform/runner");
 const whatsapp = require("../../platform/whatsappClient");
 const { processInbound } = require("./inbound");
 const { storeInboundMedia } = require("./mirror");
+const { firstName } = require("../../platform/names");
 const repo = require("./repo");
 
 const MEDIA_TYPES = ["audio", "image", "document", "video"];
@@ -52,6 +53,23 @@ async function conversationFor(driver) {
   return { id: open.id, aiPaused: open.aiPausedAt != null };
 }
 
+const UNVERIFIED_REPLY_GAP_MS = 30 * 60 * 1000;
+const unverifiedRepliedAt = new Map(); // wa id -> when the "activate first" reply last went out
+
+/**
+ * A number whose driver has not opened the activation link is not allowed to talk to the assistant: nothing is stored, nothing reaches the
+ * AI, and they are told once in a while how to activate. (A busy sender cannot make this chatty: one reply per number per half hour.)
+ */
+async function turnAwayUnverified(driver, waId, now = Date.now()) {
+  const last = unverifiedRepliedAt.get(waId) ?? 0;
+  if (now - last < UNVERIFIED_REPLY_GAP_MS) return;
+  unverifiedRepliedAt.set(waId, now);
+  await whatsapp.sendTextMessage(
+    waId,
+    `Hi ${firstName(driver.name)}, your number is not activated yet, so I cannot help you here. Please open the activation link we sent you on WhatsApp. If you cannot find it, ask your fleet manager to send a new one.`,
+  ).catch((err) => logger.error({ err }, "Activation reminder failed"));
+}
+
 async function receiveMessage(message, { deferBot = false } = {}) {
   const waId = message.from;
 
@@ -62,6 +80,12 @@ async function receiveMessage(message, { deferBot = false } = {}) {
       "This number is not registered with our fleet. Please contact your fleet manager to register as a driver.",
     ).catch((err) => logger.error({ err }, "Registration reply failed"));
     logger.info("Inbound message from an unregistered number: registration reply sent.");
+    return;
+  }
+
+  if (driver.verification_status !== "VERIFIED") {
+    await turnAwayUnverified(driver, waId);
+    logger.info("Inbound message from a number that is not verified yet: nothing stored, the assistant was not used.");
     return;
   }
 

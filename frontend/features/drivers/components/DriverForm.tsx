@@ -25,7 +25,7 @@ export function DriverForm(props: DriverFormProps) {
     </Box>
     <Box component="form" noValidate onSubmit={(event) => { event.preventDefault(); void submit(); }} sx={{ p: { xs: 2, sm: 3 } }}>
       <Alert severity="info" sx={{ mb: 3, fontSize: 12.5 }}>
-        {editing ? "Updates apply to the WhatsApp bot immediately. A changed phone number must be verified again." : "Register the driver's contact and vehicle details. The driver can verify their number by replying on WhatsApp."}
+        {editing ? "Updates apply to the WhatsApp bot immediately. A changed phone number must be verified again: a new activation link is sent to it." : "Register the driver's contact and vehicle details. An activation link is sent to their WhatsApp; the number shows as verified, and they are welcomed, once they open it."}
       </Alert>
       <DriverFormFields mode={props.mode} form={form} status={status} onStatusChange={setStatus} errorFor={errorFor} onChange={change} onBlur={blur} disabled={submitting} />
       {!editing && (requirements.loading ? <SectionPreloader label="Checking registration requirements…" /> : <Box sx={{ mt: 3 }}>

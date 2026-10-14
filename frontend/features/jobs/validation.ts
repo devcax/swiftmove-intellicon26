@@ -16,7 +16,7 @@ function firstProblems(result: { success: boolean; error?: { issues: { path: Pro
 }
 
 /** The first problem of each field of a new job. An empty object means the form is valid. */
-export const validateCreateJob = (values: JobFormValues, minPickupAt: string): JobFormErrors => firstProblems(createJobSchema(minPickupAt).safeParse(values));
+export const validateCreateJob = (values: JobFormValues): JobFormErrors => firstProblems(createJobSchema().safeParse(values));
 
 export const validateEditJob = (values: JobFormValues): JobFormErrors => firstProblems(editJobSchema.safeParse(values));
 

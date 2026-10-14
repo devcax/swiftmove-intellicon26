@@ -25,7 +25,7 @@ function collectLeaves(node, found = { leaves: [], anyGroups: [] }) {
 function createRequirementsQuery({ getPolicies = getGatewayPolicies } = {}) {
   return registry.defineQuery({
     name: 'policy.requirements',
-    description: 'List what a driver or manager must provide before an action can go ahead, according to the published policies.',
+    description: 'List what a driver or manager must provide before an action can go ahead, according to the published policies. Give the action\'s exact name (policy.listAll shows which action each policy guards), not a policy name.',
     roles: ['ADMIN', 'MANAGER'],
     input: inputSchema,
     handler: async ({ input, actor }) => {

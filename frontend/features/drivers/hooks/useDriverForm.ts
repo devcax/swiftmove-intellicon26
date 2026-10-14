@@ -8,7 +8,7 @@ import { feedback } from "@/shared/feedback/store";
 import { useRequirements } from "@/shared/hooks/useRequirements";
 import { blockedRequirement, isCollectable, missingRequirements, newEvidenceRef, recordRequirements, type RequirementErrors, type RequirementValue, type RequirementValues } from "@/features/evidence/values";
 import { createDriver, updateDriver } from "../api";
-import { formatPhoneInput, formatPlateInput, toE164 } from "../format";
+import { formatPhoneInput, formatPlateInput, toE164, vehicleTypes } from "../format";
 import { serverFieldErrors, validateDriverForm } from "../validation";
 import type { Driver, DriverFormErrors, DriverFormField, DriverFormValues, DriverStatus } from "../types";
 
@@ -23,8 +23,13 @@ export interface DriverFormProps {
 export function useDriverForm({ mode, driver, existingPhones, onSaved }: DriverFormProps) {
   const editing = mode === "edit";
   const [form, setForm] = useState<DriverFormValues>(() => driver ? {
-    fullName: driver.name, phone: formatPhoneInput(driver.phone), vehicleType: driver.vehicleType ?? "", licensePlate: driver.licensePlate ?? "",
-  } : { fullName: "", phone: "", vehicleType: "", licensePlate: "" });
+    fullName: driver.name, phone: formatPhoneInput(driver.phone),
+    vehicleType: driver.vehicleType && !vehicleTypes.includes(driver.vehicleType) ? "Other" : driver.vehicleType ?? "",
+    otherVehicleType: driver.vehicleType && (!vehicleTypes.includes(driver.vehicleType) || driver.vehicleType === "Other") ? driver.vehicleType : "",
+    licensePlate: driver.licensePlate ?? "",
+    address: driver.address ?? "", nic: driver.nic ?? "", dateOfBirth: driver.dateOfBirth ?? "",
+    bankName: driver.bankName ?? "", bankBranch: driver.bankBranch ?? "", bankAccountHolder: driver.bankAccountHolder ?? "", bankAccountNumber: driver.bankAccountNumber ?? "",
+  } : { fullName: "", phone: "", vehicleType: "", otherVehicleType: "", licensePlate: "", address: "", nic: "", dateOfBirth: "", bankName: "", bankBranch: "", bankAccountHolder: "", bankAccountNumber: "" });
   const [status, setStatus] = useState<DriverStatus>(driver?.status ?? "ACTIVE");
   const [touched, setTouched] = useState<Partial<Record<DriverFormField, boolean>>>({});
   const [serverErrors, setServerErrors] = useState<DriverFormErrors>({});
@@ -51,7 +56,7 @@ export function useDriverForm({ mode, driver, existingPhones, onSaved }: DriverF
   const submit = async () => {
     if (submitting || requirements.loading) return;
     setError(null);
-    setTouched({ fullName: true, phone: true, vehicleType: true, licensePlate: true });
+    setTouched(Object.fromEntries(Object.keys(form).map(key => [key, true])));
     if (Object.keys(errors).length) return;
     const phone = toE164(form.phone);
     if (!phone || (editing && !driver)) return;
@@ -64,7 +69,12 @@ export function useDriverForm({ mode, driver, existingPhones, onSaved }: DriverF
       if (Object.keys(missing).length) { setRequirementErrors(missing); return; }
     }
     setSubmitting(true);
-    const payload = { name: form.fullName.trim(), phone, vehicleType: form.vehicleType, licensePlate: form.licensePlate.trim().toUpperCase() };
+    const payload = {
+      name: form.fullName.trim(), phone, vehicleType: form.vehicleType === "Other" ? form.otherVehicleType.trim() : form.vehicleType, licensePlate: form.licensePlate.trim().toUpperCase(),
+      address: form.address.trim() || null, nic: form.nic.trim().toUpperCase() || null, dateOfBirth: form.dateOfBirth || null,
+      bankName: form.bankName.trim() || null, bankBranch: form.bankBranch.trim() || null,
+      bankAccountHolder: form.bankAccountHolder.trim() || null, bankAccountNumber: form.bankAccountNumber.trim() || null,
+    };
     try {
       if (!editing && requirements.fields.some(isCollectable)) await recordRequirements(evidenceRef, requirements.fields, requirementValues);
       const saved = editing && driver ? await updateDriver(driver.id, { ...payload, status }) : await createDriver({ ...payload, evidenceRef });

@@ -21,7 +21,7 @@ function welcomeText({ name, vehicleType }) {
 }
 
 /**
- * driver.created: welcome the driver on WhatsApp. Reads the driver through the driver.get query, never
+ * driver.verified: welcome the driver on WhatsApp, now that their number is verified. Reads the driver through the driver.get query, never
  * through the drivers module's tables. A driver deleted before delivery is skipped. If the send fails the
  * dispatcher retries it, which the old route never did.
  */
@@ -33,7 +33,7 @@ async function driverWelcome({ event, query }) {
     if (err.code === 'NOT_FOUND') return;
     throw err;
   }
-  if (!driver.phone) return;
+  if (!driver.phone || !driver.verified) return;
   await whatsapp.sendTextMessage(driver.phone.replace(/\D/g, ''), welcomeText(driver));
 }
 

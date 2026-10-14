@@ -172,9 +172,9 @@ async function findJobIdByNumber(conversationId, jobNumber) {
 
 // ------------------------------------------------------------ receiving a message
 
-/** The active driver whose WhatsApp number (digits only) this is, or null. */
+/** The active driver whose WhatsApp number (digits only) this is, or null. `verification_status` says whether they opened their activation link. */
 const findDriverByWhatsapp = async (digits) => first(await prisma.$queryRaw(sql`
-  SELECT d.id AS driver_id, d.organization_id, d.active_job_id, d.name, d.vehicle_type
+  SELECT d.id AS driver_id, d.organization_id, d.active_job_id, d.name, d.vehicle_type, wa.verification_status
     FROM driver_whatsapp_accounts wa JOIN drivers d ON d.id = wa.driver_id
    WHERE regexp_replace(wa.phone_e164, '\\D', '', 'g') = ${digits} AND wa.verification_status <> 'REVOKED' AND d.status = 'ACTIVE'
    ORDER BY wa.is_primary DESC LIMIT 1`));

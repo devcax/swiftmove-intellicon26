@@ -4,9 +4,10 @@ const MAX_WINDOW_MS = 2 * 24 * 60 * 60 * 1000;
 const fail = (path, message) => { throw new ValidationError(message, { details: [{ path, message }] }); };
 
 /** Action-level schedule checks cannot be bypassed by calling the API directly. */
-function validateJobSchedule(pickupAt, deliveryAt, { now = Date.now(), leadMs = 0 } = {}) {
+// The dashboard picks whole minutes, so a pickup in the current minute is still "now", not the past.
+function validateJobSchedule(pickupAt, deliveryAt, { now = Date.now(), leadMs = 0, graceMs = 0 } = {}) {
   if (!(pickupAt instanceof Date) || !Number.isFinite(pickupAt.getTime())) fail('pickupAt', 'Choose a valid pickup date and time.');
-  if (pickupAt.getTime() < now + leadMs) fail('pickupAt', leadMs ? 'Pickup must be at least 1 hour from now.' : 'Pickup cannot be in the past.');
+  if (pickupAt.getTime() < now + leadMs - graceMs) fail('pickupAt', leadMs ? 'Pickup must be at least 1 hour from now.' : 'Pickup cannot be in the past.');
   if (deliveryAt == null) return;
   if (!(deliveryAt instanceof Date) || !Number.isFinite(deliveryAt.getTime())) fail('deliveryAt', 'Choose a valid delivery date and time.');
   if (deliveryAt <= pickupAt) fail('deliveryAt', 'Delivery must be after the pickup time.');

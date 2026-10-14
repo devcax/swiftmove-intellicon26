@@ -14,12 +14,11 @@ import { useRequirements } from "@/shared/hooks/useRequirements";
 import { blockedRequirement, isCollectable, missingRequirements, newEvidenceRef, recordRequirements, type RequirementErrors, type RequirementValue, type RequirementValues } from "@/features/evidence/values";
 import { createJob, fetchJobIdentifiers } from "../api";
 import { feedback } from "@/shared/feedback/store";
-import { localIdentifiers, oneHourFromNowLocalInput } from "../listing";
+import { localIdentifiers } from "../listing";
 import { validateCreateJob } from "../validation";
 
 export function useCreateJobForm(onCreated: (job: ApiJobSummary) => void) {
   const [form, setForm] = React.useState<JobFormValues>(EMPTY_JOB_FORM);
-  const [minPickupAt] = React.useState(oneHourFromNowLocalInput);
   const [serverErrors, setServerErrors] = React.useState<JobFormErrors>({});
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -45,7 +44,7 @@ export function useCreateJobForm(onCreated: (job: ApiJobSummary) => void) {
     };
   }, []);
 
-  const errors = validateCreateJob(form, minPickupAt);
+  const errors = validateCreateJob(form);
   const isValid = Object.keys(errors).length === 0;
   const shownErrors: JobFormErrors = { ...errors, ...serverErrors };
 
@@ -70,7 +69,7 @@ export function useCreateJobForm(onCreated: (job: ApiJobSummary) => void) {
 
   const submit = async () => {
     if (submitting || requirements.loading) return;
-    const currentErrors = validateCreateJob(form, minPickupAt);
+    const currentErrors = validateCreateJob(form);
     if (Object.keys(currentErrors).length) { setServerErrors(currentErrors); return; }
     const missing = missingRequirements(requirements.fields, requirementValues);
     if (Object.keys(missing).length > 0) {
@@ -119,5 +118,5 @@ export function useCreateJobForm(onCreated: (job: ApiJobSummary) => void) {
     setForm((current) => ({ ...current, [`${stage}Location`]: address, [`${stage}Latitude`]: point.latitude.toFixed(6), [`${stage}Longitude`]: point.longitude.toFixed(6) }));
     setServerErrors((current) => ({ ...current, [`${stage}Location`]: undefined, [`${stage}Latitude`]: undefined, [`${stage}Longitude`]: undefined }));
   };
-  return { form, minPickupAt, shownErrors, isValid, submitting, error, change, submit, requirements, requirementValues, requirementErrors, changeRequirement, setLocation };
+  return { form, shownErrors, isValid, submitting, error, change, submit, requirements, requirementValues, requirementErrors, changeRequirement, setLocation };
 }

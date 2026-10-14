@@ -38,10 +38,9 @@ export function fromLocalInput(value: string): string | undefined {
   return d.toISOString();
 }
 
-// Earliest pickup a manager can pick: 1 hour from now (so "today" stays
-// selectable, not just "tomorrow").
-export function oneHourFromNowLocalInput(): string {
-  return toLocalInput(new Date(Math.ceil((Date.now() + 60 * 60 * 1000) / 60000) * 60000).toISOString());
+// Earliest pickup a manager can pick: the current minute, so a pickup later today is allowed.
+export function nowLocalInput(): string {
+  return toLocalInput(new Date(Math.floor(Date.now() / 60000) * 60000).toISOString());
 }
 
 export function formCoordinates(form: JobFormValues, stage: "pickup" | "delivery"): GeoPoint {

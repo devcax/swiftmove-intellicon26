@@ -32,8 +32,17 @@ export interface ApiOverviewAiEvent {
 }
 
 export interface ApiOperationsOverview {
+  insights?: ApiOverviewInsights;
   kpis: ApiOverviewKpi[];
   activeJobs: ApiOverviewJob[];
   openIncidents: ApiOverviewIncident[];
   recentAiEvents: ApiOverviewAiEvent[];
+}
+
+export interface ApiOverviewInsights {
+  drivers: { total: number; unassigned: number; assigned: number; inactive: number };
+  jobs: { draft: number; open: number; live: number; completed: number; cancelled: number; other: number };
+  activity: { date: string; created: number; completed: number }[];
+  unreadDriverMessages: number;
+  timezone: string;
 }

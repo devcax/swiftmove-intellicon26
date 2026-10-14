@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { APP_TIMEZONE } = require('../../platform/time');
 
 const STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED'];
 
@@ -48,7 +49,19 @@ const status = (fallback) => z.unknown().optional().transform((raw, ctx) => {
   return value;
 });
 
-const fields = { name, phone, vehicleType, licensePlate };
+const optionalText = (max) => z.string().trim().max(max).nullable().optional().transform(value => value === '' ? null : value);
+const dateOfBirth = optionalText(10).refine(value => {
+  if (value == null) return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: APP_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value && value <= today;
+}, 'Enter a valid date of birth that is not in the future.');
+const fields = {
+  name, phone, vehicleType, licensePlate,
+  address: optionalText(1000), nic: optionalText(20).transform(value => value?.toUpperCase() ?? value), dateOfBirth,
+  bankName: optionalText(160), bankBranch: optionalText(160), bankAccountHolder: optionalText(160), bankAccountNumber: optionalText(80),
+};
 
 // A status sent on create is accepted for compatibility and ignored: a new driver is always ACTIVE.
 // evidenceRef: the id the form used for evidence it collected before the driver existed (see the evidence module).

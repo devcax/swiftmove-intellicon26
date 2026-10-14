@@ -2,7 +2,7 @@ import { ApiError } from "@/shared/api/client";
 import { driverFormSchema } from "./schemas";
 import type { DriverFormErrors, DriverFormField, DriverFormValues } from "./types";
 
-const FIELDS: DriverFormField[] = ["fullName", "phone", "vehicleType", "licensePlate"];
+const FIELDS: DriverFormField[] = ["fullName", "phone", "vehicleType", "otherVehicleType", "licensePlate", "address", "nic", "dateOfBirth", "bankName", "bankBranch", "bankAccountHolder", "bankAccountNumber"];
 
 /** The first problem for each field, using the zod schema. An empty object means the form is valid. */
 export function validateDriverForm(values: DriverFormValues): DriverFormErrors {
@@ -19,6 +19,7 @@ export function validateDriverForm(values: DriverFormValues): DriverFormErrors {
 // The server names its fields as the API does; the form calls the name field "fullName".
 const SERVER_FIELD: Record<string, DriverFormField> = {
   name: "fullName", phone: "phone", vehicleType: "vehicleType", licensePlate: "licensePlate",
+  address: "address", nic: "nic", dateOfBirth: "dateOfBirth", bankName: "bankName", bankBranch: "bankBranch", bankAccountHolder: "bankAccountHolder", bankAccountNumber: "bankAccountNumber",
 };
 
 /** Field problems the server reported, to show next to the matching field. Other details are ignored. */

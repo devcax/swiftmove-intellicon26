@@ -7,7 +7,7 @@ const repo = require('../repo');
 module.exports = defineAction({
   name: 'driver.create',
   title: 'Add a driver',
-  description: 'Add a driver with a name, a WhatsApp number, a vehicle type and a licence plate. They are welcomed on WhatsApp.',
+  description: 'Add a driver with a name, WhatsApp number, vehicle and licence plate. Address, NIC, date of birth and bank details are optional. An activation link is sent to their WhatsApp; the number is verified, and they are welcomed, once they open it.',
   actors: ['MANAGER'],
   roles: ['ADMIN', 'MANAGER'],
   input: createSchema,
@@ -18,10 +18,14 @@ module.exports = defineAction({
     if (input.evidenceRef) {
       await attachEvidence(tx, { organizationId: actor.organizationId, evidenceRef: input.evidenceRef, subjectType: 'DRIVER', subjectId: created.id });
     }
+    await repo.issueActivation(tx, created.driverWhatsappAccounts[0].id);
     const row = await repo.findDriver(tx, actor.organizationId, created.id);
     return {
       result: presentDriver(row),
-      events: [{ type: 'driver.created', payload: { driverId: created.id } }],
+      events: [
+        { type: 'driver.created', payload: { driverId: created.id } },
+        { type: 'driver.activationRequested', payload: { driverId: created.id } },
+      ],
       subject: { type: 'DRIVER', id: created.id },
     };
   },

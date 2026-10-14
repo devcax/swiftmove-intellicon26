@@ -55,13 +55,12 @@ function checkCustomUnit(values: { unit: string; customUnit: string }, ctx: z.Re
   }
 }
 
-/** What a new job needs. `minPickupAt` is the earliest pickup allowed (an hour from when the form opened). */
-export function createJobSchema(minPickupAt: string) {
-  const min = instant(minPickupAt);
+/** What a new job needs. A pickup later today is fine: it only cannot be earlier than the current minute (the form picks whole minutes). */
+export function createJobSchema() {
   return z.object({
     ...routeAndCargo,
     pickupAt: date("Choose the pickup time").superRefine((value, ctx) => {
-      if (instant(value) < Math.max(Number.isNaN(min) ? 0 : min, Date.now() + 60 * 60 * 1000)) ctx.addIssue({ code: "custom", message: "Pickup must be at least 1 hour from now" });
+      if (instant(value) < Math.floor(Date.now() / 60000) * 60000) ctx.addIssue({ code: "custom", message: "Pickup cannot be in the past" });
     }),
     deliveryAt: date("Choose the delivery time"),
     quantity: required("Enter the quantity"),
@@ -71,6 +70,6 @@ export function createJobSchema(minPickupAt: string) {
 /** Edited jobs must also have a future pickup and a valid delivery window. */
 export const editJobSchema = z.object({
   ...routeAndCargo,
-  pickupAt: date("Choose the pickup time").refine((value) => instant(value) >= Date.now(), "Pickup cannot be in the past"),
+  pickupAt: date("Choose the pickup time").refine((value) => instant(value) >= Math.floor(Date.now() / 60000) * 60000, "Pickup cannot be in the past"),
   deliveryAt: date("Choose the delivery time"),
 }).loose().superRefine(checkWindow).superRefine(checkCustomUnit);

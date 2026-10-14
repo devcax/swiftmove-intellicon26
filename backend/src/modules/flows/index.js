@@ -9,10 +9,10 @@ module.exports = {
   generate: require('./generate'),
   authorPrompt: require('./author').AUTHOR_PROMPT,
   actions: [
-    require('./actions/create'), require('./actions/draft').draftAction, require('./actions/save'), require('./actions/publish').publish,
+    require('./actions/create'), require('./actions/build').buildAction, require('./actions/draft').draftAction, require('./actions/save'), require('./actions/publish').publish,
     require('./actions/publish').rollback, require('./actions/toggle'), require('./actions/delete'),
   ],
-  queries: [require('./queries/list'), require('./queries/get'), require('./queries/simulate'), require('./queries/runtime').listLive, require('./queries/runtime').getVersion],
+  queries: [require('./queries/list'), require('./queries/listAll'), require('./queries/get'), require('./queries/simulate'), require('./queries/runtime').listLive, require('./queries/runtime').getVersion],
   checks: [],
   events: require('./events'),
   routes: [

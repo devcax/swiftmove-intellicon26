@@ -12,6 +12,10 @@ export async function fetchDrivers(): Promise<Driver[]> {
   return driverListSchema.parse(await request<unknown>("/api/drivers"));
 }
 
+export async function fetchDriver(id: string, signal?: AbortSignal): Promise<Driver> {
+  return driverSchema.parse(await request<unknown>(`/api/drivers/${encodeURIComponent(id)}`, { signal }));
+}
+
 export async function fetchDriverProfile(id: string) {
   return driverProfileSchema.parse(await request<unknown>(`/api/drivers/${encodeURIComponent(id)}/profile`));
 }
@@ -30,4 +34,8 @@ export async function updateDriverStatus(id: string, status: DriverStatus): Prom
 
 export async function deleteDriver(id: string): Promise<{ ok: boolean; id: string; name: string }> {
   return deleteDriverResultSchema.parse(await request<unknown>(`/api/drivers/${id}`, { method: "DELETE" }));
+}
+
+export async function resendDriverActivation(id: string): Promise<void> {
+  await request<unknown>(`/api/drivers/${encodeURIComponent(id)}/activation`, { method: "POST", body: "{}" });
 }

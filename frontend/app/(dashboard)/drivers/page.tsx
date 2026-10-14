@@ -9,6 +9,7 @@ import { DriverFleetSummary } from "@/features/drivers/components/DriverFleetSum
 import { DriverKpis } from "@/features/drivers/components/DriverKpis";
 import { DriverTable } from "@/features/drivers/components/DriverTable";
 import { driverMatchesQuery } from "@/features/drivers/format";
+import { resendDriverActivation } from "@/features/drivers/api";
 import { useDrivers } from "@/features/drivers/hooks/useDrivers";
 import type { Driver } from "@/features/drivers/types";
 
@@ -21,6 +22,15 @@ export default function DriversPage() {
 
   const fleet = drivers ?? [];
   const visible = fleet.filter((driver) => driverMatchesQuery(driver, query));
+
+  const resendActivation = async (driver: Driver) => {
+    try {
+      await resendDriverActivation(driver.id);
+      feedback.success(`A new activation link was sent to ${driver.name}.`);
+    } catch (err) {
+      feedback.error(describeError(err, "Could not send the activation link."));
+    }
+  };
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -50,6 +60,7 @@ export default function DriversPage() {
         loadError={loadError}
         onRetry={() => void reload()}
         onEdit={(driver) => router.push(`/drivers/${encodeURIComponent(driver.id)}/edit`)}
+        onResendActivation={(driver) => void resendActivation(driver)}
         onStatusChange={(id, status) => void changeStatus(id, status)}
         onDelete={setDeleteTarget}
       />

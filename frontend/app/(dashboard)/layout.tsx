@@ -16,6 +16,7 @@ import { useSidebarCounts } from "@/features/shell/hooks/useSidebarCounts";
 import { pageMetaFor } from "@/features/shell/pageMeta";
 import { breadcrumbsFor } from "@/features/shell/breadcrumbs";
 import { PageBreadcrumbs } from "@/features/shell/components/PageBreadcrumbs";
+import { QuickCreateButton } from "@/features/shell/components/QuickCreateButton";
 
 const DRAWER_WIDTH = 248;
 const COLLAPSED_WIDTH = 80;
@@ -97,6 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Fab>
         </Tooltip>
       )}
+      {!chatOpen && <QuickCreateButton key={pathname} />}
       <ManagerChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />
     </Box>
   );

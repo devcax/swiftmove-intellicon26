@@ -23,7 +23,7 @@ function normalize(input) {
   validateDateInput(input.pickupAt, parsedPickup, 'pickupAt');
   validateDateInput(input.deliveryAt, deliveryAt, 'deliveryAt');
   const pickupAt = parsedPickup ?? new Date(Date.now() + 24 * 3600 * 1000);
-  validateJobSchedule(pickupAt, deliveryAt, { leadMs: 60 * 60 * 1000 });
+  validateJobSchedule(pickupAt, deliveryAt, { graceMs: 60 * 1000 });
   return {
     pickupLocation, deliveryLocation, cargo,
     status: input.status === 'DRAFT' ? 'DRAFT' : 'PUBLISHED',

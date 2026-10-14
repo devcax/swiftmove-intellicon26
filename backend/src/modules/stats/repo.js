@@ -1,6 +1,7 @@
 /** Counts and lists for the dashboard. Raw SQL: aggregates and joins across several tables. Every read filters by organization. */
 const { Prisma } = require('@prisma/client');
 const { LIVE_STATUSES, AWAITING_COMPLETION, ON_THE_ROAD } = require('./statuses');
+const { APP_TIMEZONE } = require('../../platform/time');
 
 const org = (organizationId) => Prisma.sql`${organizationId}::uuid`;
 
@@ -83,7 +84,44 @@ const listRecentAiReadings = (db, organizationId) => db.$queryRaw(Prisma.sql`
    WHERE c.organization_id = ${org(organizationId)} AND j.organization_id = ${org(organizationId)} AND ai.processing_status = 'COMPLETED' AND m.sender_type = 'DRIVER'
    ORDER BY ai.created_at DESC LIMIT 6`);
 
+async function driverSnapshot(db, organizationId) {
+  const rows = await db.$queryRaw(Prisma.sql`
+    SELECT COUNT(*)::int AS total,
+           COUNT(*) FILTER (WHERE status = 'ACTIVE' AND active_job_id IS NULL)::int AS unassigned,
+           COUNT(*) FILTER (WHERE status = 'ACTIVE' AND active_job_id IS NOT NULL)::int AS assigned,
+           COUNT(*) FILTER (WHERE status <> 'ACTIVE')::int AS inactive
+      FROM drivers WHERE organization_id = ${org(organizationId)}`);
+  return rows[0];
+}
+
+const jobStatusCounts = (db, organizationId) => db.$queryRaw(Prisma.sql`
+  SELECT current_status AS status, COUNT(*)::int AS count
+    FROM jobs WHERE organization_id = ${org(organizationId)} GROUP BY current_status`);
+
+/** Calendar days in the configured business timezone, including zero-activity days. */
+const dailyJobActivity = (db, organizationId) => db.$queryRaw(Prisma.sql`
+  WITH bounds AS (
+    SELECT (now() AT TIME ZONE ${APP_TIMEZONE})::date AS today
+  ), days AS (
+    SELECT (today - n)::date AS day FROM bounds CROSS JOIN generate_series(0, 29) AS n
+  ), activity AS (
+    SELECT (created_at AT TIME ZONE ${APP_TIMEZONE})::date AS day, 'created' AS kind
+      FROM jobs, bounds WHERE organization_id = ${org(organizationId)}
+        AND created_at >= ((today - 29)::timestamp AT TIME ZONE ${APP_TIMEZONE})
+        AND created_at <= now()
+    UNION ALL
+    SELECT (completed_at AT TIME ZONE ${APP_TIMEZONE})::date AS day, 'completed' AS kind
+      FROM jobs, bounds WHERE organization_id = ${org(organizationId)}
+        AND completed_at >= ((today - 29)::timestamp AT TIME ZONE ${APP_TIMEZONE})
+        AND completed_at <= now()
+  )
+  SELECT to_char(d.day, 'YYYY-MM-DD') AS date,
+         COUNT(*) FILTER (WHERE a.kind = 'created')::int AS created,
+         COUNT(*) FILTER (WHERE a.kind = 'completed')::int AS completed
+    FROM days d LEFT JOIN activity a ON a.day = d.day GROUP BY d.day ORDER BY d.day`);
+
 module.exports = {
+  driverSnapshot, jobStatusCounts, dailyJobActivity,
   countUnreadDriverMessages, listRecentDriverMessageIds, listLiveJobStamps, listOpenIncidentIds, listPendingRequestIds, countJobs,
   countPendingRequests, countOpenIncidents, listActiveJobs, listLatestOpenIncidents, listRecentAiReadings,
 };

@@ -1,6 +1,6 @@
 import { subscriberDigits } from "./schemas";
 
-export const vehicleTypes = ["Prime Mover", "Rigid Lorry", "Tipper", "Box Truck", "Flatbed", "Van"];
+export const vehicleTypes = ["Prime Mover", "Rigid Lorry", "Tipper", "Box Truck", "Flatbed", "Van", "Other"];
 
 function groupSubscriber(digits: string): string {
   const parts: string[] = [];

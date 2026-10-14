@@ -99,9 +99,13 @@ export function DriverProfilePage({ driverId }: { driverId: string }) {
         {tab === "overview" ? <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr 1fr" }, gap: 3, alignItems: "start" }}>
           <Paper sx={panel}><Typography component="h2" sx={{ fontSize: 18, fontWeight: 700, mb: 2 }}>Driver details</Typography>
             <Box component="dl" sx={{ m: 0 }}>{[
-              ["WhatsApp", formatPhoneDisplay(driver.phone)], ["Verification", driver.verified ? "Verified" : "Unverified"],
+              ["WhatsApp", formatPhoneDisplay(driver.phone)], ["Verification", driver.verified ? "Verified" : "Awaiting activation"],
               ["Vehicle", driver.vehicleType ?? "Unspecified"], ["License plate", driver.licensePlate ?? "Not provided"],
               ["Bot access", driver.status === "ACTIVE" ? "Enabled" : "Disabled"], ["Registered", date(driver.createdAt)],
+              ["Address", driver.address || "Not provided"], ["NIC", driver.nic || "Not provided"],
+              ["Date of birth", driver.dateOfBirth ? new Date(`${driver.dateOfBirth}T12:00:00Z`).toLocaleDateString("en-GB", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" }) : "Not provided"],
+              ["Bank", driver.bankName || "Not provided"], ["Branch", driver.bankBranch || "Not provided"],
+              ["Account holder", driver.bankAccountHolder || "Not provided"], ["Account number", driver.bankAccountNumber || "Not provided"],
             ].map(([label, value]) => <Box key={label} sx={{ py: 1.5, borderBottom: "1px solid #eef0f4", display: "flex", justifyContent: "space-between", gap: 2 }}><Typography component="dt" sx={{ fontSize: 12, color: "text.secondary" }}>{label}</Typography><Typography component="dd" sx={{ m: 0, fontSize: 12, textAlign: "right", fontWeight: 500 }}>{value}</Typography></Box>)}</Box>
           </Paper>
           <Paper sx={panel}><Typography component="h2" sx={{ fontSize: 18, fontWeight: 700, mb: 2 }}>Current assignment</Typography>

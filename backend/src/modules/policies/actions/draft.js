@@ -18,7 +18,7 @@ function createDraftAction({ draft = draftPolicy, db = repo.client } = {}) {
   return defineAction({
     name: 'policy.draft',
     title: 'Draft a policy with the AI',
-    description: 'Describe a rule in plain words and the AI writes a draft from the supported building blocks. It is saved as a draft only.',
+    description: 'Create a new policy (rule) from plain words: describe it and the AI writes it from the supported building blocks. It is saved as a draft only and does nothing until it is published.',
     actors: ['MANAGER'],
     roles: ['ADMIN', 'MANAGER'],
     input: draftSchema,

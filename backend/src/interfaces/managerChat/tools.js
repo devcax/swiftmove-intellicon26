@@ -6,6 +6,9 @@
 const registry = require('../../platform/registry');
 
 const toolName = (name) => name.replace('.', '_');
+// Large lists made for the dashboard's builder screens (every version, every building block). The assistant gets the short `listAll`
+// tools instead, so a list is never cut off halfway and a question about policies or conversations always finds the right tool.
+const DASHBOARD_ONLY = new Set(['policy.list', 'flow.list']);
 const roleAllowed = (definition, roles) => definition.roles.length === 0 || definition.roles.some((role) => roles.includes(role));
 
 // The model has to be sent every tool it may use, on every round, and providers limit tokens per minute: leave out what it does not need.
@@ -46,18 +49,18 @@ function buildTools(roles = []) {
     add('action', action);
   }
   for (const query of registry.listQueries()) {
-    if (!query.actors.includes('MANAGER') || !roleAllowed(query, roles)) continue;
+    if (!query.actors.includes('MANAGER') || !roleAllowed(query, roles) || DASHBOARD_ONLY.has(query.name)) continue;
     add('query', query);
   }
   return { tools, lookup };
 }
 
 const STOP_WORDS = new Set(['the', 'and', 'for', 'with', 'this', 'that', 'from', 'please', 'new', 'all', 'one', 'what', 'who', 'how', 'are', 'was', 'can', 'you', 'give', 'show', 'tell']);
-const words = (text) => String(text ?? '').toLowerCase().replace(/([a-z])([A-Z])/g, '$1 $2').split(/[^a-z0-9]+/)
-  .map((w) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w)).filter((w) => w.length >= 3 && !STOP_WORDS.has(w));
+const words = (text) => String(text ?? '').replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(/[^a-z0-9]+/)
+  .map((w) => (w.length > 4 && w.endsWith('ies') ? `${w.slice(0, -3)}y` : w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w)).filter((w) => w.length >= 3 && !STOP_WORDS.has(w));
 
 // What managers say, and the words the tools use for it.
-const ALIASES = { add: ['create'], register: ['create'], pause: ['disable'], stop: ['disable'], resume: ['enable'], remove: ['delete'], change: ['update'], edit: ['update'], rename: ['update'], late: ['delay'], delayed: ['delay'], accept: ['approve'], decline: ['reject'], close: ['complete', 'closure'], open: ['list'], list: ['list'], find: ['list', 'get'], who: ['list'], which: ['list'], status: ['status', 'get'] };
+const ALIASES = { add: ['create'], register: ['create'], pause: ['disable'], stop: ['disable'], resume: ['enable'], remove: ['delete'], change: ['update'], edit: ['update'], rename: ['update'], late: ['delay'], delayed: ['delay'], accept: ['approve'], decline: ['reject'], close: ['complete', 'closure'], open: ['list'], list: ['list'], find: ['list', 'get'], who: ['list'], which: ['list'], status: ['status', 'get'], active: ['list'], live: ['list'], exist: ['list'], conversation: ['flow'], bot: ['flow'], rule: ['policy'] };
 
 /**
  * The tools worth offering for this conversation: those whose name or description share words with what the manager wrote, best first.
@@ -77,6 +80,11 @@ function pickTools(tools, text, { limit = 14, minimum = 8 } = {}) {
     return { tool, score };
   });
   const picked = scored.filter((entry) => entry.score > 0).sort((a, b) => b.score - a.score).slice(0, limit).map((entry) => entry.tool);
+  // A short list of everything of a kind (policies, bot conversations) is always worth offering once that kind is mentioned.
+  for (const tool of tools) {
+    const [module, verb] = tool.function.name.split('_');
+    if (verb === 'listAll' && wanted.has(module) && !picked.includes(tool)) picked.unshift(tool);
+  }
   if (picked.length >= minimum) return picked;
   // Too little to go on: add the read tools, which cannot change anything, so the model can at least look things up.
   const reads = tools.filter((tool) => tool.function.description.startsWith('Reads only') && !picked.includes(tool));

@@ -4,7 +4,7 @@ const { isHealthy } = require("../../platform/db");
 const { requestId } = require("../../platform/http/requestId");
 const { requestLogger } = require("../../platform/http/requestLogger");
 const { applySecurity, requireJson, originCheck } = require("../../platform/http/security");
-const { apiLimiter, webhookLimiter, loginLimiter } = require("../../platform/http/rateLimit");
+const { apiLimiter, webhookLimiter, loginLimiter, activationLimiter } = require("../../platform/http/rateLimit");
 const { createAuthenticate, requireRole } = require("../../platform/http/authenticate");
 const { createAuthRouter, repo: authRepo } = require("../../modules/auth");
 const { mountModules } = require("../../platform/http/mountModules");
@@ -16,6 +16,7 @@ const { notFound } = require("../../platform/http/notFound");
 const { errorHandler } = require("../../platform/http/errorHandler");
 const { webhookRouter } = require("../whatsapp");
 const { createManagerChatRouter } = require("../managerChat");
+const { createDriverActivationRouter } = require("../driverActivation");
 
 const app = express();
 
@@ -40,6 +41,8 @@ app.get("/health", async (_req, res) => {
 
 app.use("/api/webhooks/whatsapp", webhookLimiter, webhookRouter);
 app.use("/api", apiLimiter);
+// Open to anyone holding the link (a new driver, not a signed-in manager): the token is the secret, and the page only verifies on a button press.
+app.use("/api/public/driver-activation", activationLimiter, createDriverActivationRouter());
 const authenticate = createAuthenticate({
   findSession: authRepo.findLiveSession,
   touchSession: authRepo.touchSession,

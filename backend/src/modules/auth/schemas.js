@@ -2,10 +2,10 @@ const { z } = require('zod');
 
 const email = z.string().trim().min(3).max(255).email();
 
-// Login and password creation share the same length limits.
+// Existing passwords remain usable at login; the minimum applies to new passwords only.
 const loginSchema = z.object({
   email,
-  password: z.string().min(8, 'Use at least 8 characters.').max(128),
+  password: z.string().min(1, 'Enter your password.').max(128),
 }).strict();
 
 // New passwords: 8 to 128 characters, no other composition rules.

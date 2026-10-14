@@ -8,20 +8,20 @@ import { FormTextField } from "@/shared/components/FormTextField";
 import { LocationPicker } from "@/shared/components/LocationPicker";
 import type { GeoPoint } from "@/shared/types/location";
 import { DRIVER_DISCOVERY_WINDOW_NOTE, MAX_DELIVERY_WINDOW_MS, units } from "../constants";
-import { toLocalInput, oneHourFromNowLocalInput } from "../listing";
+import { nowLocalInput, toLocalInput } from "../listing";
 import type { JobFormErrors, JobFormField, JobFormValues } from "../schemas";
 
 interface JobFormFieldsProps {
-  mode: "create" | "edit"; values: JobFormValues; errors: JobFormErrors; minPickupAt?: string; disabled?: boolean;
+  mode: "create" | "edit"; values: JobFormValues; errors: JobFormErrors; disabled?: boolean;
   onChange: (field: JobFormField) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onLocationChange: (stage: "pickup" | "delivery", point: GeoPoint, address: string) => void;
 }
 
-export function JobFormFields({ mode, values, errors, minPickupAt, disabled = false, onChange, onLocationChange }: JobFormFieldsProps) {
+export function JobFormFields({ mode, values, errors, disabled = false, onChange, onLocationChange }: JobFormFieldsProps) {
   const creating = mode === "create";
   const time = values.pickupAt ? new Date(values.pickupAt).getTime() : NaN;
   const maxDeliveryAt = Number.isFinite(time) ? toLocalInput(new Date(time + MAX_DELIVERY_WINDOW_MS).toISOString()) : undefined;
-  const minimumPickup = creating ? (minPickupAt && minPickupAt > oneHourFromNowLocalInput() ? minPickupAt : oneHourFromNowLocalInput()) : toLocalInput(new Date().toISOString());
+  const minimumPickup = nowLocalInput();
   const point = (stage: "pickup" | "delivery"): GeoPoint | null => values[`${stage}Latitude`] && values[`${stage}Longitude`] ? { latitude: Number(values[`${stage}Latitude`]), longitude: Number(values[`${stage}Longitude`]) } : null;
   const field = (name: JobFormField) => ({
     value: values[name], onChange: onChange(name), disabled,
@@ -49,7 +49,7 @@ export function JobFormFields({ mode, values, errors, minPickupAt, disabled = fa
       <FormTextField required={creating} label="Quantity" type="number" placeholder="18" {...field("quantity")} slotProps={{ htmlInput: { min: 0 } }} />
       <FormTextField required={creating} label="Unit" select {...field("unit")}>{units.map((unit) => <MenuItem key={unit} value={unit}>{unit}</MenuItem>)}</FormTextField>
       {values.unit === "Other" && <FormTextField required label="Custom unit name" placeholder="e.g. Crates" {...field("customUnit")} helperText={errors.customUnit ?? "Enter the unit used to measure this cargo."} error={Boolean(errors.customUnit)} slotProps={{ htmlInput: { maxLength: 60 } }} sx={{ gridColumn: { xs: "auto", md: "2 / -1" } }} />}
-      <FormTextField label="Special instructions" multiline minRows={3} placeholder="Handling notes, dock access, contact persons…" {...field("instructions")} sx={{ gridColumn: "1 / -1" }} />
+      <FormTextField label="Special instructions" multiline minRows={3} placeholder="Handling notes, dock access, contact persons…" {...field("instructions")} helperText={errors.instructions ?? "Shared with drivers in WhatsApp job details when provided."} sx={{ gridColumn: "1 / -1" }} />
     </Box>
   </>;
 }

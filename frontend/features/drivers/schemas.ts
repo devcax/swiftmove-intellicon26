@@ -13,6 +13,9 @@ export const driverSchema = z.object({
   completedTrips: z.number(),
   vehicleType: z.string().nullable(),
   licensePlate: z.string().nullable(),
+  address: z.string().nullable().optional(), nic: z.string().nullable().optional(), dateOfBirth: z.string().nullable().optional(),
+  bankName: z.string().nullable().optional(), bankBranch: z.string().nullable().optional(),
+  bankAccountHolder: z.string().nullable().optional(), bankAccountNumber: z.string().nullable().optional(),
 });
 
 export const driverListSchema = z.array(driverSchema);
@@ -32,6 +35,9 @@ export const deleteDriverResultSchema = z.object({ ok: z.boolean(), id: z.string
 
 /** What the API accepts when a driver is created or edited (the phone is already +94XXXXXXXXX). */
 export const driverPayloadSchema = z.object({
+  address: z.string().nullable().optional(), nic: z.string().nullable().optional(), dateOfBirth: z.string().nullable().optional(),
+  bankName: z.string().nullable().optional(), bankBranch: z.string().nullable().optional(),
+  bankAccountHolder: z.string().nullable().optional(), bankAccountNumber: z.string().nullable().optional(),
   name: z.string(),
   phone: z.string(),
   vehicleType: z.string(),
@@ -57,6 +63,19 @@ export function subscriberDigits(raw: string): string {
 }
 
 export const driverFormSchema = z.object({
+  address: z.string().max(1000, "Use at most 1,000 characters.").default(""),
+  nic: z.string().max(20, "Use at most 20 characters.").default(""),
+  dateOfBirth: z.string().refine(value => {
+    if (!value) return true;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const parsed = new Date(`${value}T00:00:00Z`);
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Colombo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value && value <= today;
+  }, "Enter a valid date of birth that is not in the future.").default(""),
+  bankName: z.string().max(160, "Use at most 160 characters.").default(""),
+  bankBranch: z.string().max(160, "Use at most 160 characters.").default(""),
+  bankAccountHolder: z.string().max(160, "Use at most 160 characters.").default(""),
+  bankAccountNumber: z.string().max(80, "Use at most 80 characters.").default(""),
   fullName: z.string().superRefine((value, ctx) => {
     const name = value.trim();
     if (name.length < 3) {
@@ -72,9 +91,15 @@ export const driverFormSchema = z.object({
     else if (!/^7\d{8}$/.test(digits)) ctx.addIssue({ code: "custom", message: "Mobile number must start with 7 (e.g. 77 123 4567)" });
   }),
   vehicleType: z.string().min(1, "Select a vehicle type"),
+  otherVehicleType: z.string().default(""),
   licensePlate: z.string().superRefine((value, ctx) => {
     const plate = value.trim().toUpperCase();
     if (!plate) ctx.addIssue({ code: "custom", message: "License plate is required" });
     else if (!PLATE_PATTERN.test(plate)) ctx.addIssue({ code: "custom", message: "Use a format like ED-1234" });
   }),
+}).superRefine((values, ctx) => {
+  if (values.vehicleType !== "Other") return;
+  const name = values.otherVehicleType.trim();
+  if (!name) ctx.addIssue({ code: "custom", path: ["otherVehicleType"], message: "Enter the vehicle type name." });
+  else if (name.length > 60) ctx.addIssue({ code: "custom", path: ["otherVehicleType"], message: "Use at most 60 characters." });
 });

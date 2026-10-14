@@ -118,8 +118,23 @@ model DriverWhatsappAccount {
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
   driver             Driver    @relation(fields: [driverId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  activations        DriverActivation[]
 
   @@map("driver_whatsapp_accounts")
+}
+
+/// The one-time link a driver opens to prove the WhatsApp number is theirs. Until it is used the number cannot chat with the assistant.
+model DriverActivation {
+  id        String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountId String                @map("account_id") @db.Uuid
+  token     String                @unique @db.VarChar(64)
+  expiresAt DateTime              @map("expires_at") @db.Timestamptz(6)
+  usedAt    DateTime?             @map("used_at") @db.Timestamptz(6)
+  createdAt DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  account   DriverWhatsappAccount @relation(fields: [accountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([accountId])
+  @@map("driver_activations")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -133,6 +148,13 @@ model Driver {
   updatedAt              DateTime                @default(now()) @map("updated_at") @db.Timestamptz(6)
   vehicleType            String?                 @map("vehicle_type") @db.VarChar(60)
   licensePlate           String?                 @map("license_plate") @db.VarChar(30)
+  address                String?                 @db.VarChar(1000)
+  nic                    String?                 @db.VarChar(20)
+  dateOfBirth            DateTime?               @map("date_of_birth") @db.Date
+  bankName               String?                 @map("bank_name") @db.VarChar(160)
+  bankBranch             String?                 @map("bank_branch") @db.VarChar(160)
+  bankAccountHolder      String?                 @map("bank_account_holder") @db.VarChar(160)
+  bankAccountNumber      String?                 @map("bank_account_number") @db.VarChar(80)
   auditLogs              AuditLog[]
   conversations          Conversation[]
   driverWhatsappAccounts DriverWhatsappAccount[]

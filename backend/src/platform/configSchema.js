@@ -34,6 +34,8 @@ const schema = z.object({
   WHATSAPP_BUSINESS_ACCOUNT_ID: text(undefined),
   WHATSAPP_PHONE_NUMBER_ID: text(undefined),
   WHATSAPP_PUBLIC_URL: text(undefined),
+  // Where the dashboard is reached from outside (https://fleet.example.com). Activation links sent to drivers are built on it.
+  APP_PUBLIC_URL: text(undefined),
   GRAPH_API_VERSION: text('v21.0'),
 
   GROQ_API: text(undefined),
@@ -105,6 +107,7 @@ function toConfig(env) {
     whatsappBusinessAccountId: env.WHATSAPP_BUSINESS_ACCOUNT_ID,
     whatsappPhoneNumberId: env.WHATSAPP_PHONE_NUMBER_ID,
     whatsappPublicUrl: env.WHATSAPP_PUBLIC_URL,
+    appPublicUrl: env.APP_PUBLIC_URL,
     graphApiVersion: env.GRAPH_API_VERSION,
     groqApiKey: env.GROQ_API,
     groqBaseUrl: env.GROQ_BASE_URL,

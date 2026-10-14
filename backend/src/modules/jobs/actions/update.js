@@ -38,7 +38,7 @@ module.exports = defineAction({
     const organizationId = actor.organizationId;
     const job = await changes.findJob(tx, organizationId, input.id);
     if (!['DRAFT', 'PUBLISHED'].includes(job.currentStatus)) throw new ConflictError('Only draft or published jobs can be edited.');
-    validateJobSchedule(form.pickupAt ?? job.pickupAt, form.deliveryAt);
+    validateJobSchedule(form.pickupAt ?? job.pickupAt, form.deliveryAt, { graceMs: 60 * 1000 });
 
     const pickupId = await changes.findOrCreateLocation(tx, organizationId, form.pickupLocation, form.pickupCoordinates);
     const deliveryId = await changes.findOrCreateLocation(tx, organizationId, form.deliveryLocation, form.deliveryCoordinates);

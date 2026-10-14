@@ -19,6 +19,7 @@ function scheduled(value) {
 
 /** One consistent WhatsApp card for automatic suggestions and the driver's jobs reply. Security codes are never included. */
 function formatJobDetails(job) {
+  const notes = String(job.special_instructions ?? '').trim();
   return [
     `*${job.job_number}*`,
     `*Cargo:* ${job.cargo_description || 'Not specified'}`,
@@ -31,6 +32,7 @@ function formatJobDetails(job) {
     '*Delivery*',
     `Address: ${address(job, 'delivery')}`,
     `When: ${scheduled(job.delivery_at)}`,
+    ...(notes ? ['', '*Notes:*', notes] : []),
     '',
     `Times: ${APP_TIMEZONE}`,
   ].join('\n');

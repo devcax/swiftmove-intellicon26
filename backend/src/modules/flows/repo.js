@@ -44,6 +44,14 @@ const keyExists = async (client, organizationId, key) => Boolean(
   await client.flowDefinition.findFirst({ where: { organizationId, key }, select: { id: true } }),
 );
 
+/** A key that does not exist yet for this organization, starting from `suggestion` (a slug) and adding -2, -3… when it is taken. */
+async function allocateKey(client, organizationId, suggestion) {
+  const base = String(suggestion ?? '').slice(0, 50) || `chat.${Date.now().toString(36)}`;
+  let candidate = base;
+  for (let i = 2; await keyExists(client, organizationId, candidate); i += 1) candidate = `${base}-${i}`;
+  return candidate;
+}
+
 const insertVersion = async (tx, organizationId, data) => toFlowRow(await tx.flowDefinition.create({
   data: {
     organizationId, key: data.key, name: data.name, description: data.description, version: data.version, status: 'DRAFT',
@@ -63,4 +71,4 @@ const deleteKey = (tx, organizationId, key) => tx.flowDefinition.deleteMany({ wh
 /** The audit entry for a flow change; the entity id is the affected version row. */
 const audit = (tx, entry) => recordAudit(tx, { ...entry, entityType: 'FLOW' });
 
-module.exports = { listLiveRows, findVersionRow, loadRows, loadAllByKey, latestOfOthers, keyExists, insertVersion, updateDraft, setStatus, deleteKey, audit };
+module.exports = { client: prisma, allocateKey, listLiveRows, findVersionRow, loadRows, loadAllByKey, latestOfOthers, keyExists, insertVersion, updateDraft, setStatus, deleteKey, audit };

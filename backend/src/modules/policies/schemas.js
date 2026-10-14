@@ -20,6 +20,7 @@ const draftSchema = z.object({
   base: z.object({ id: id.optional() }).passthrough().optional(),
 }).strict();
 
+const listAllSchema = z.object({ search: z.string().max(80).optional(), activeOnly: z.boolean().optional() }).strict();
 const idSchema = z.object({ id }).strict();
 const emptySchema = z.object({}).strict();
 
@@ -30,4 +31,4 @@ const testSchema = z.object({
   input: z.record(z.string(), z.unknown()).optional(),
 }).strict();
 
-module.exports = { createSchema, reviseSchema, draftSchema, idSchema, emptySchema, testSchema };
+module.exports = { listAllSchema, createSchema, reviseSchema, draftSchema, idSchema, emptySchema, testSchema };

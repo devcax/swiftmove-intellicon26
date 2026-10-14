@@ -155,7 +155,7 @@ const closeOtherOffers = (tx, jobId, exceptId) => tx.jobAssignment.updateMany({
 // ------------------------------------------------------------ what a driver can browse
 
 const OPEN_JOB_COLUMNS = Prisma.sql`
-  j.id, j.job_number, j.cargo_description, j.pickup_at, j.delivery_at,
+  j.id, j.job_number, j.cargo_description, j.special_instructions, j.pickup_at, j.delivery_at,
   pl.name AS pickup, pl.address_line_1 AS pickup_address, pl.city AS pickup_city,
   dl.name AS delivery, dl.address_line_1 AS delivery_address, dl.city AS delivery_city,
   ji.planned_quantity::text AS quantity, ji.unit`;
