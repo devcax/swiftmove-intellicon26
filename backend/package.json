@@ -1,0 +1,53 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "node scripts/dev/db-migrate-dev.js",
+    "db:status": "prisma migrate status",
+    "db:generate": "prisma generate",
+    "db:seed": "node scripts/dev/seed.js",
+    "user:create": "node scripts/dev/create-user.js",
+    "test:db:reset": "node scripts/dev/test-db-reset.js",
+    "db:seed-flows": "node scripts/dev/seed-flows.js",
+    "db:seed-policies": "node scripts/dev/seed-policies.js",
+    "db:add-driver": "node scripts/dev/add-driver.js",
+    "db:export-guard-rules": "node scripts/dev/export-guard-rules.js",
+    "db:check": "node scripts/dev/check-schema.js",
+    "docs:inventory": "node scripts/dev/generate-capability-inventory.js",
+    "test": "node scripts/dev/run-tests.js",
+    "test:unit": "node scripts/dev/run-tests.js tests/stateMachine.test.js",
+    "postinstall": "prisma generate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1121.0",
+    "@aws-sdk/s3-request-presigner": "^3.1121.0",
+    "@axiomhq/pino": "2.0.0",
+    "@prisma/client": "6.19.3",
+    "argon2": "0.45.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "8.7.1",
+    "helmet": "8.3.0",
+    "pino": "10.4.0",
+    "pino-http": "11.0.0",
+    "prisma": "6.19.3",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "supertest": "7.3.1"
+  }
+}
